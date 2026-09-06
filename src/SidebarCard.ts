@@ -19,6 +19,7 @@ import {
   createElementFromHTML,
   perfMonitor
 } from "./helpers";
+import * as moment from "moment";
 
 export class SidebarCard extends LitElement {
   config: any;
@@ -502,41 +503,17 @@ export class SidebarCard extends LitElement {
   // OTTIMIZZATO: Usa Intl.DateTimeFormat invece di moment
   _runDate() {
     if (!this.shadowRoot) return;
-    const dateEl = this.shadowRoot.querySelector(".date");
+
+    const dateEl: HTMLElement | null = this.shadowRoot.querySelector(".date");
+    
     if (!dateEl) return;
 
-    const now = new Date();
-    const lang =
-      (this.hass && this.hass.language) || navigator.language || "en";
-
-    // Converti formato moment in opzioni Intl
-    // Es: "DD MMMM" -> { day: '2-digit', month: 'long' }
-    const options: Intl.DateTimeFormatOptions = {};
-
-    if (this.dateFormat.includes("DD")) {
-      options.day = "2-digit";
-    } else if (this.dateFormat.includes("D")) {
-      options.day = "numeric";
-    }
-
-    if (this.dateFormat.includes("MMMM")) {
-      options.month = "long";
-    } else if (this.dateFormat.includes("MMM")) {
-      options.month = "short";
-    } else if (this.dateFormat.includes("MM")) {
-      options.month = "2-digit";
-    } else if (this.dateFormat.includes("M")) {
-      options.month = "numeric";
-    }
-
-    if (this.dateFormat.includes("YYYY")) {
-      options.year = "numeric";
-    } else if (this.dateFormat.includes("YY")) {
-      options.year = "2-digit";
-    }
-
-    const formatter = new Intl.DateTimeFormat(lang, options);
-    (dateEl as HTMLElement).textContent = formatter.format(now);
+    const now = moment();
+    const lang = (this.hass && this.hass.language) || navigator.language || "en";
+    
+    dateEl.textContent = now
+      .locale(lang)
+      .format(this.dateFormat || "LL");
   }
 
   updateSidebarSize() {
