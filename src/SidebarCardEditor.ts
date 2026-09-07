@@ -7,6 +7,7 @@
 import { css, html, LitElement, CSSResult, TemplateResult } from "lit-element";
 import { saveLovelaceConfig } from "./helpers";
 import * as YAML from "yaml";
+import { HomeAssistant } from "home-assistant-frontend-types";
 
 // -------------------------------------------------------
 //  YAML helpers
@@ -44,7 +45,27 @@ interface MenuItem {
 // -------------------------------------------------------
 //  Costanti
 // -------------------------------------------------------
-const ACTION_OPTIONS = [
+type ActionType = "navigate" 
+      | "more-info" 
+      | "toggle"
+      | "call-service" 
+      | "service-js" 
+      | "url" 
+      | "toggle-sidebar" 
+      | "toggle-topmenu";
+type MenuStyle = "list" 
+      | "wide" 
+      | "buttons" 
+      | "grid";
+
+type TopMenuMode = "overlay" 
+      | "push" 
+      | "flip";
+type MenuPosition = "left"
+      | "center"
+      | "right"
+
+const ACTION_OPTIONS: {value: ActionType, label: string}[] = [
   { value: "navigate", label: "Navigate" },
   { value: "toggle", label: "Toggle" },
   { value: "more-info", label: "More Info" },
@@ -55,24 +76,86 @@ const ACTION_OPTIONS = [
   { value: "toggle-topmenu", label: "Toggle Top Menu" },
 ];
 
-const MENU_STYLE_OPTIONS = [
+const MENU_STYLE_OPTIONS: {value: MenuStyle, label: string}[] = [
   { value: "list", label: "List" },
   { value: "wide", label: "Wide" },
   { value: "buttons", label: "Buttons" },
   { value: "grid", label: "Grid" },
 ];
 
-const TOP_MENU_MODE_OPTIONS = [
+const TOP_MENU_MODE_OPTIONS: {value: TopMenuMode, label: string}[] = [
   { value: "overlay", label: "Overlay" },
   { value: "push", label: "Push" },
   { value: "flip", label: "Flip" },
 ];
 
-const HEADER_MENU_POS_OPTIONS = [
+const HEADER_MENU_POS_OPTIONS: {value: MenuPosition, label: string}[] = [
   { value: "left", label: "Left" },
   { value: "center", label: "Center" },
   { value: "right", label: "Right" },
 ];
+
+export interface MenuConfig {
+  action?: ActionType;
+  name?: string;
+  icon?: string;
+  background_color?: string;
+  icon_color?: string;
+  text_color?: string;
+  state?: string;
+  conditional?: string;
+}
+
+type LovelaceCardConfig = {type: string} & Object;
+
+export interface SidebarConfig {
+  enabled?: boolean;
+  debug?: boolean;
+  title?: string;
+  clock?: boolean;
+  digitalClock?: boolean;
+  digitalClockWithSeconds?: boolean;
+  twelveHourVersion?: boolean;
+  period?: boolean;
+  date?: boolean;
+  dateFormat?: string;
+  updateMenu?: boolean;
+  hideHassSidebar?: boolean;
+  hideTopMenu?: boolean;
+  showTopMenuOnMobile?: boolean;
+  width?: number | {
+      mobile?: number;
+      tablet?: number;
+      desktop?: number;
+    };
+  hideOnPath?: string[];
+  menuStyle?: MenuStyle;
+  showLabel?: boolean;
+  template?: string;
+  bottomCard?: LovelaceCardConfig;
+  bottomCardTheme?: string;
+  sidebarMenu?: MenuConfig[];
+  style?: string;
+}
+
+export interface HeaderConfig {
+  enabled?: boolean;
+  title?: string;
+  sticky?: boolean;
+  height?: number;
+  style?: string;
+  topMenuMode?: TopMenuMode;
+  flipDuration?: number;
+  headerMenuStyle?: MenuStyle;
+  headerMenuShowLabel?: boolean;
+  headerMenuPosition?: MenuPosition;
+  leftMenu?: MenuConfig[];
+  rightMenu?: MenuConfig[];
+  headerMenu?: MenuConfig[];
+  leftCard?: LovelaceCardConfig;
+  rightCard?: LovelaceCardConfig;
+  centerCard?: LovelaceCardConfig;
+}
 
 // -------------------------------------------------------
 //  Traduzioni / Translations
@@ -268,11 +351,11 @@ function menuKeyIsHeader(menuKey: string): boolean {
 // -------------------------------------------------------
 export class SidebarCardEditor extends LitElement {
   // -- reactive properties --------------------------------
-  hass: any = null;
+  hass: HomeAssistant | null = null;
   _open = false;
   _activeTab: TabId = "sidebar";
-  _sidebarConfig: any = {};
-  _headerConfig: any = {};
+  _sidebarConfig: SidebarConfig = {};
+  _headerConfig: HeaderConfig = {};
   _dirty = false;
   _saving = false;
   _saveError: string | null = null;
@@ -745,6 +828,9 @@ export class SidebarCardEditor extends LitElement {
           ${c.bottomCard ? html`<span class="slot-badge">${c.bottomCard.type || "?"}</span>` : ""}
         </summary>
         <div class="section">
+          ${this._renderSelect("Theme", "", Object.keys(this.hass?.themes.themes ?? {}).map(theme => ({value: theme, label: theme})), (theme: string) => {
+            this._setSidebar("theme", theme);
+          })}
           ${this._renderCardSlot(
             c.bottomCard ?? null,
             (v) => v ? this._setSidebar("bottomCard", v) : this._deleteSidebar("bottomCard"),

@@ -20,10 +20,12 @@ import {
   perfMonitor
 } from "./helpers";
 import * as moment from "moment";
+import { HomeAssistant } from "home-assistant-frontend-types";
+import { SidebarConfig } from "./SidebarCardEditor";
 
 export class SidebarCard extends LitElement {
-  config: any;
-  hass: any;
+  config: SidebarConfig = {};
+  hass: HomeAssistant | undefined;
   renderCard: any;
   templateLines: any = [];
   clock = false;
@@ -190,9 +192,7 @@ export class SidebarCard extends LitElement {
       ? this.config.dateFormat
       : "DD MMMM";
     this.bottomCard = this.config.bottomCard ? this.config.bottomCard : null;
-    this.updateMenu = this.config.hasOwnProperty("updateMenu")
-      ? this.config.updateMenu
-      : true;
+    this.updateMenu = this.config.updateMenu ?? true;
 
     return html`
       ${addStyle
@@ -251,9 +251,9 @@ export class SidebarCard extends LitElement {
                   .map((sidebarMenuItem: any) => {
                     const isActive =
                       sidebarMenuItem.state &&
-                      this.hass.states[sidebarMenuItem.state] &&
-                      this.hass.states[sidebarMenuItem.state].state != "off" &&
-                      this.hass.states[sidebarMenuItem.state].state !=
+                      this.hass?.states[sidebarMenuItem.state] &&
+                      this.hass?.states[sidebarMenuItem.state].state != "off" &&
+                      this.hass?.states[sidebarMenuItem.state].state !=
                         "unavailable";
 
                     const bg = sidebarMenuItem.background_color || "";
@@ -617,6 +617,15 @@ export class SidebarCard extends LitElement {
 
           cardElement.setConfig(card);
           cardElement.hass = hass();
+          if (this.config.bottomCardTheme) {
+            const theme = this.hass?.themes.themes[this.config.bottomCardTheme];
+            if (theme) {
+              for (let key in theme) {
+                (cardElement as HTMLElement).style.setProperty(`--${key}`, theme[key]);
+              }
+            }
+          }
+
           (bottomSection as HTMLElement).appendChild(cardElement);
           provideHass(cardElement);
 
@@ -770,6 +779,8 @@ export class SidebarCard extends LitElement {
   }
 
   _customAction(tapAction: any) {
+    if (!this.hass) return;
+
     switch (tapAction.action) {
       case "more-info":
         if (tapAction.entity || tapAction.camera_image) {
@@ -793,6 +804,7 @@ export class SidebarCard extends LitElement {
 
       case "toggle":
         if (tapAction.entity) {
+          //@ts-ignore
           toggleEntity(this.hass, tapAction.entity!);
           forwardHaptic("success");
         }
@@ -880,7 +892,7 @@ export class SidebarCard extends LitElement {
         {
           template: this.config.template,
           variables: { config: this.config },
-          entity_ids: this.config.entity_ids
+          entity_ids: []
         }
       );
     }
