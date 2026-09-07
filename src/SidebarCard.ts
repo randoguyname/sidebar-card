@@ -508,7 +508,7 @@ export class SidebarCard extends LitElement {
     
     if (!dateEl) return;
 
-    const now = moment();
+    const now = moment.call(null);
     const lang = (this.hass && this.hass.language) || navigator.language || "en";
     
     dateEl.textContent = now
