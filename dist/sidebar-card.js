@@ -1017,7 +1017,7 @@ const e="undefined"!=typeof window&&null!=window.customElements&&void 0!==window
           ${n.bottomCard?R`<span class="slot-badge">${n.bottomCard.type||"?"}</span>`:""}
         </summary>
         <div class="section">
-          ${this._renderSelect("Theme","",Object.keys(null!==(t=null===(e=this.hass)||void 0===e?void 0:e.themes.themes)&&void 0!==t?t:{}).map(e=>({value:e,label:e})),e=>{this._setSidebar("theme",e)})}
+          ${this._renderSelect("Theme","",Object.keys(null!==(t=null===(e=this.hass)||void 0===e?void 0:e.themes.themes)&&void 0!==t?t:{}).map(e=>({value:e,label:e})),e=>{this._setSidebar("bottomCardTheme",e)})}
           ${this._renderCardSlot(null!==(i=n.bottomCard)&&void 0!==i?i:null,e=>e?this._setSidebar("bottomCard",e):this._deleteSidebar("bottomCard"),"vertical-stack")}
         </div>
       </details>

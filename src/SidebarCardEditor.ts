@@ -829,7 +829,7 @@ export class SidebarCardEditor extends LitElement {
         </summary>
         <div class="section">
           ${this._renderSelect("Theme", "", Object.keys(this.hass?.themes.themes ?? {}).map(theme => ({value: theme, label: theme})), (theme: string) => {
-            this._setSidebar("theme", theme);
+            this._setSidebar("bottomCardTheme", theme);
           })}
           ${this._renderCardSlot(
             c.bottomCard ?? null,
